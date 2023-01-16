@@ -56,4 +56,3 @@ contract Voting {
     // Function to refund the fee to the voter 
     function refundFee() public {
         require(msg.sender != winner, "Only the losers can claim the fee
-
