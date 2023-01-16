@@ -1,1 +1,59 @@
+pragma solidity ^0.8.0;
+
+contract Voting {
+    // Mapping of candidates to the number of votes they have received
+    mapping (address => uint) public votes;
+    // Mapping of the candidates to their information
+    mapping (address => string) public candidates;
+    // Mapping of the voter to their fee
+    mapping (address => uint) public fees;
+    // The address of the candidate who has won the election
+    address public winner;
+    // The fee required to vote
+    uint public fee;
+    // The state of the contract, true if the voting is finished, false otherwise
+    bool public finished = false;
+
+    // Function to register a candidate
+    function register(string memory _name) public {
+        require(!finished, "Voting already finished");
+        candidates[msg.sender] = _name;
+    }
+
+    // Function to vote for a candidate
+    function vote(address _candidate) public payable {
+        require(!finished, "Voting already finished");
+        require(msg.value >= fee, "Not enough fee paid");
+        require(candidates[_candidate] != "", "Candidate not registered");
+        votes[_candidate]++;
+        fees[msg.sender] = msg.value;
+    }
+
+    // Function to finish the voting and declare the winner
+    function finish() public {
+        require(msg.sender == msg.sender, "Only the owner can finish the voting");
+        require(!finished, "Voting already finished");
+        uint maxVotes = 0;
+        for (address candidate in votes) {
+            if (votes[candidate] > maxVotes) {
+                maxVotes = votes[candidate];
+                winner = candidate;
+            }
+        }
+        finished = true;
+    }
+
+    // Function to claim the fee by the winner candidate
+    function claimFee() public {
+        require(msg.sender == winner, "Only the winner can claim the fee");
+        uint fee = 0;
+        for (address voter in fees) {
+            fee += fees[voter];
+        }
+        msg.sender.transfer(fee);
+    }
+
+    // Function to refund the fee to the voter 
+    function refundFee() public {
+        require(msg.sender != winner, "Only the losers can claim the fee
 
